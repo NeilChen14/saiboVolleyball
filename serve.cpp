@@ -6,7 +6,11 @@
 
 // 添加调试信息标志
 
-ServeType decideServeStrategy(const Player& server, const GameState& game) {
+Serve::Serve(const Player& server, const GameState& game)
+    : server(server), game(game), adjustment(0.0) {
+}
+
+ServeType Serve::decideServeStrategy() {
     // 基础策略：根据球员属性和比赛情况决定
     
     // 1. 发球属性高且自信心高的球员更倾向于冲发球
@@ -69,7 +73,7 @@ ServeType decideServeStrategy(const Player& server, const GameState& game) {
     return result;
 }
 
-double calculateServeAdjustment(const Player& server, const GameState& game, ServeType serveType) {
+double Serve::calculateServeAdjustment() {
     double adjustment = 1.0;
     
     // 耐力影响：比赛越久，耐力越低，失误率增加
@@ -102,7 +106,7 @@ double calculateServeAdjustment(const Player& server, const GameState& game, Ser
     return std::max(0.3, adjustment); // 确保调整系数不低于0.3
 }
 
-int calculateServePower(const Player& server, ServeType serveType, double adjustment) {
+int Serve::calculateServePower() {
     int basePower = server.serve;
     int finalPower;
     
@@ -126,7 +130,7 @@ int calculateServePower(const Player& server, ServeType serveType, double adjust
     }
 }
 
-double calculateServeFaultRate(const Player& server, ServeType serveType, double adjustment) {
+double Serve::calculateServeFaultRate() {
     double baseFaultRate;
     
     switch(serveType) {
@@ -162,51 +166,52 @@ double calculateServeFaultRate(const Player& server, ServeType serveType, double
     return finalFaultRate;
 }
 
-ServeResult simulateServe(const Player& server, const GameState& game) {
+ServeResult Serve::simulate() {
     ServeResult result;
-    
-    #if DEBUG_SERVE
+
+#if DEBUG_SERVE
     std::cout << "\n\n=== 发球模拟开始 ===" << std::endl;
     std::cout << "发球球员: " << server.name << " 发球属性: " << server.serve << std::endl;
     std::cout << "当前局数: " << game.setNum << " 比分 A:" << game.scoreA << " B:" << game.scoreB << std::endl;
-    #endif
-    
+#endif
+
     // 决定发球策略
-    result.type = decideServeStrategy(server, game);
-    
+    serveType = decideServeStrategy();
+    result.type = serveType;
+
     // 计算调整系数
-    double adjustment = calculateServeAdjustment(server, game, result.type);
-    
+    adjustment = calculateServeAdjustment();
+
     // 计算发球强度和失误率
-    int servePower = calculateServePower(server, result.type, adjustment);
-    double faultRate = calculateServeFaultRate(server, result.type, adjustment);
-    
+    int servePower = calculateServePower();
+    double faultRate = calculateServeFaultRate();
+
     // 判断发球是否成功
     double randomValue = (rand() % 100) / 100.0;
     result.success = (randomValue > faultRate);
-    
-    #if DEBUG_SERVE
+
+#if DEBUG_SERVE
     std::cout << "\n=== 发球结果 ===" << std::endl;
     std::cout << "随机值: " << randomValue << " 失误率阈值: " << faultRate << std::endl;
     std::cout << "发球是否成功: " << (result.success ? "成功" : "失败") << std::endl;
-    #endif
-    
+#endif
+
     if (!result.success) {
         result.effectiveness = 0;
-        #if DEBUG_SERVE
+#if DEBUG_SERVE
         std::cout << "发球失误，效果值为0" << std::endl;
         std::cout << "=== 发球模拟结束 ===\n" << std::endl;
-        #endif
+#endif
         return result;
     }
-    
+
     // 发球成功，计算发球效果
     result.effectiveness = servePower;
-    
-    #if DEBUG_SERVE
+
+#if DEBUG_SERVE
     std::cout << "发球效果值: " << result.effectiveness << std::endl;
     std::cout << "=== 发球模拟结束 ===\n" << std::endl;
-    #endif
-    
+#endif
+
     return result;
 }

@@ -106,7 +106,8 @@ int processRallyFromServe(GameState& game) {
         server = teamB[game.rotateB[0]];  // B队1号位发球
     }
 
-    ServeResult serveResult = simulateServe(server, game);
+    Serve serve(server, game);
+    ServeResult serveResult = serve.simulate();
 
     std::string serveTypeStr = (serveResult.type == STABLE_SERVE) ? "稳定发球" : "冲发球";
     printf("%s队%s使用%s...",
