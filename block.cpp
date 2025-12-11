@@ -527,7 +527,7 @@ int Blocker::calculateCombinedBlockPower(const std::vector<Player>& blockers, co
     std::cout << "人数加成: " << blockers.size() << "人拦网 => 系数 " << numberBonus << std::endl;
     std::cout << "组合拦网强度: " << averagePower << " * " << teamworkFactor << " * " << numberBonus << " = " << combinedPower - randomFactor << std::endl;
     std::cout << "随机因素: " << randomFactor << std::endl;
-    std::cout << "最终组合拦网强度: " << combinedPower << " (四舍五入: " << finalPower << ")" << std::endl;
+    std::cout << "最终组合拦网强度: " << combinedPower << " (取整： " << finalPower << ")" << std::endl;
     std::cout << "====================================" << std::endl;
     #endif
 
