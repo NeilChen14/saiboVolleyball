@@ -242,7 +242,7 @@ double Setter::calculateAttackerEffectiveness(const Player& attacker, int positi
             matchupAdvantage = std::max(-1.0, std::min(1.0, matchupAdvantage));
             // 转换为得分（55分满分）
             matchupAdvantage = (matchupAdvantage + 1.0) * 27.5;
-        } else if(attacker.gender == 0 && blocker.gender == 1) {
+        } else if(attacker.gender == 0 && blocker.gender == 1 && FEMALE_CAN_BE_BLOCK == 0) {
             matchupAdvantage = 55.0; // 对手男生不能拦女生，最大优势
         } else {
             matchupAdvantage = 55.0; // 对手无拦网能力，最大优势
