@@ -133,7 +133,7 @@ void readData() {
 
         std::vector<std::string> fields = split(line, ',');
 
-        if(fields.size() < 14) continue;
+        if(fields.size() < 15) continue;
 
         aNewPlayer.name = trim(fields[0]);
         aNewPlayer.position = trim(fields[1]);

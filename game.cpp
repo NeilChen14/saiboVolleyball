@@ -14,6 +14,8 @@
 #include <fstream>
 #include <sstream>
 
+// 在 game.cpp 文件开头添加
+extern void emitUIEvent(const char* msg);
 
 int processRallyFromReceive(GameState& game, int attackingTeam, int defendingTeam, const ReceiveResult& receiveResult);
 
@@ -109,15 +111,20 @@ int processRallyFromServe(GameState& game) {
     Serve serve(server, game);
     ServeResult serveResult = serve.simulate();
 
+
+
     std::string serveTypeStr = (serveResult.type == STABLE_SERVE) ? "稳定发球" : "冲发球";
-    printf("%s队%s使用%s...",
-           (game.serveSide == 0) ? "A" : "B",
-           server.name.c_str(),
-           serveTypeStr.c_str());
+    char buffer[256];
+    sprintf(buffer, "%s队%s使用%s...",
+            (game.serveSide == 0) ? "A" : "B",
+            server.name.c_str(),
+            serveTypeStr.c_str());
+    emitUIEvent(buffer);
+
 
     if (!serveResult.success) {
         // 发球失误
-        printf("发球失误！\n");
+        emitUIEvent("发球失误！");
 
         if(game.serveSide == 0) {//失误统计
             game.faultA[game.rotateA[0]]++;
@@ -128,7 +135,9 @@ int processRallyFromServe(GameState& game) {
         return attackingTeam; // 防守方（发球方）失分，进攻方得分
     }
 
-    printf("发球成功，效果值：%d\n", serveResult.effectiveness);
+
+    sprintf(buffer, "发球成功，效果值：%d", serveResult.effectiveness);
+    emitUIEvent(buffer);
 
     #if PAUSE_FOR_READ
     system("pause");
@@ -142,19 +151,23 @@ int processRallyFromServe(GameState& game) {
     // 显示接一阵型信息
     ReceiveFormation formation = receiveServe.getReceiveFormation();
     std::string formationStr = (formation == FORMATION_4_PLAYER) ? "4人接一" : "3人接一";
-    printf("%s队采用%s阵型\n", (attackingTeam == 0) ? "A" : "B", formationStr.c_str());
+
+    sprintf(buffer, "%s队采用%s阵型", (attackingTeam == 0) ? "A" : "B", formationStr.c_str());
+    emitUIEvent(buffer);
 
     // 显示接一结果
-    printf("%s队%s接一：%s（质量值：%d）\n",
-           (attackingTeam == 0) ? "A" : "B",
-           receiveResult.receiver.name.c_str(),
-           receiveResult.description.c_str(),
-           receiveResult.qualityValue);
+
+    sprintf(buffer, "%s队%s接一：%s（质量值：%d）",
+            (attackingTeam == 0) ? "A" : "B",
+            receiveResult.receiver.name.c_str(),
+            receiveResult.description.c_str(),
+            receiveResult.qualityValue);
+    emitUIEvent(buffer);
+
 
     if (receiveResult.quality == RECEIVE_FAULT) {
         // 接飞
-        printf("接飞！直接失分\n");
-
+        emitUIEvent("接飞！直接失分");
         if(game.serveSide == 0) {//得分统计，ace球
             game.scoredA[game.rotateA[0]]++;
         } else {
@@ -229,28 +242,38 @@ int processRallyFromReceive(GameState& game, int attackingTeam, int defendingTea
 
         if (passResult.isSetterDump) {
             // 二次进攻的特殊显示格式
-            printf("%s队%s二次进攻：%s（质量值：%d）\n",
-                   (currentAttackingTeam == 0) ? "A" : "B",
-                   setter.name.c_str(),
-                   passResult.description.c_str(),
-                   passResult.qualityValue);
+            char buffer[256];
+            sprintf(buffer, "%s队%s二次进攻：%s（质量值：%d）",
+                    (currentAttackingTeam == 0) ? "A" : "B",
+                    setter.name.c_str(),
+                    passResult.description.c_str(),
+                    passResult.qualityValue);
+            emitUIEvent(buffer);
+
         } else {
             // 正常传球的显示格式
-            printf("%s队%s传球给%s：%s（质量值：%d）\n",
-                   (currentAttackingTeam == 0) ? "A" : "B",
-                   setter.name.c_str(),
-                   passResult.targetPlayer.name.c_str(),
-                   passResult.description.c_str(),
-                   passResult.qualityValue);
+            char buffer[256];
+            sprintf(buffer, "%s队%s传球给%s：%s（质量值：%d）",
+                    (currentAttackingTeam == 0) ? "A" : "B",
+                    setter.name.c_str(),
+                    passResult.targetPlayer.name.c_str(),
+                    passResult.description.c_str(),
+                    passResult.qualityValue);
+            emitUIEvent(buffer);
+
         }
 
         if (passResult.isSetterDump) {
-            printf("二次进攻效果值：%d\n", passResult.dumpEffectiveness);
+            char buffer[256];
+            sprintf(buffer, "二次进攻效果值：%d", passResult.dumpEffectiveness);
+            emitUIEvent(buffer);
+
         }
 
         // 如果二传失误，直接失分
         if (passResult.quality == POOR_PASS && !passResult.isSetterDump) {
-            printf("传球失误！直接失分\n");
+            emitUIEvent("传球失误！直接失分");
+
 
             if(currentAttackingTeam == 0) {
                 game.faultA[setter_id]++;
@@ -273,17 +296,24 @@ int processRallyFromReceive(GameState& game, int attackingTeam, int defendingTea
 
         if (passResult.isSetterDump) {
             // 二次进攻
-            printf("%s进行二次进攻...\n", setter.name.c_str());
+            char buffer[256];
+            sprintf(buffer, "%s进行二次进攻...", setter.name.c_str());
+            emitUIEvent(buffer);
+
 
             spikeResult = Spiker::createSetterDumpResult(setter, passResult.dumpEffectiveness);
 
             // 显示二次进攻结果
-            printf("%s使用二次进攻：%s\n",
-                   spikeResult.attacker.name.c_str(),
-                   spikeResult.description.c_str());
+
+            sprintf(buffer, "%s使用二次进攻：%s",
+                    spikeResult.attacker.name.c_str(),
+                    spikeResult.description.c_str());
+            emitUIEvent(buffer);
+
 
             if (spikeResult.isError) {
-                printf("二次进攻失误！失分\n");
+                emitUIEvent("二次进攻失误！失分");
+
 
                 if(currentAttackingTeam == 0) {
                     game.faultA[setter_id]++;
@@ -294,12 +324,18 @@ int processRallyFromReceive(GameState& game, int attackingTeam, int defendingTea
                 return currentDefendingTeam; // 防守方得分
             }
 
-            printf("二次进攻强度：%d，拦网系数：%.2f\n",
-                   spikeResult.spikePower,
-                   spikeResult.blockCoefficient);
+
+            sprintf(buffer, "二次进攻强度：%d，拦网系数：%.2f",
+                    spikeResult.spikePower,
+                    spikeResult.blockCoefficient);
+            emitUIEvent(buffer);
+
         } else {
             // 正常扣球
-            printf("%s准备扣球...\n", passResult.targetPlayer.name.c_str());
+            char buffer[256];
+            sprintf(buffer, "%s准备扣球...", passResult.targetPlayer.name.c_str());
+            emitUIEvent(buffer);
+
 
             Spiker spiker(passResult.targetPlayer, game, currentAttackingTeam);
             spikeResult = spiker.simulateSpike(passResult);
@@ -344,15 +380,19 @@ int processRallyFromReceive(GameState& game, int attackingTeam, int defendingTea
                     break;
             }
 
-            printf("%s使用%s：%s\n",
-                   spikeResult.attacker.name.c_str(),
-                   strategyStr.c_str(),
-                   spikeResult.description.c_str());
+
+            sprintf(buffer, "%s使用%s：%s",
+                    spikeResult.attacker.name.c_str(),
+                    strategyStr.c_str(),
+                    spikeResult.description.c_str());
+            emitUIEvent(buffer);
+
 
 
 
             if (spikeResult.isError) {
-                printf("扣球失误！失分\n");
+                emitUIEvent("扣球失误！失分");
+
 
                 if(currentAttackingTeam == 0) {
                     game.faultA[attackerID]++;
@@ -363,9 +403,12 @@ int processRallyFromReceive(GameState& game, int attackingTeam, int defendingTea
                 return currentDefendingTeam; // 防守方得分
             }
 
-            printf("扣球强度：%d，拦网系数：%.2f\n",
-                   spikeResult.spikePower,
-                   spikeResult.blockCoefficient);
+
+            sprintf(buffer, "扣球强度：%d，拦网系数：%.2f",
+                    spikeResult.spikePower,
+                    spikeResult.blockCoefficient);
+            emitUIEvent(buffer);
+
         }
 
         #if PAUSE_FOR_READ
@@ -377,17 +420,22 @@ int processRallyFromReceive(GameState& game, int attackingTeam, int defendingTea
         BlockResultInfo blockResult = blocker.simulateBlock(spikeResult);
 
         // 显示拦网结果
-        printf("%s队拦网：%s（拦网强度：%d，效果值：%.2f）\n",
-               (currentDefendingTeam == 0) ? "A" : "B",
-               blockResult.description.c_str(),
-               blockResult.blockPower,
-               blockResult.blockEffect);
+        char buffer[256];
+        sprintf(buffer, "%s队拦网：%s（拦网强度：%d，效果值：%.2f）",
+                (currentDefendingTeam == 0) ? "A" : "B",
+                blockResult.description.c_str(),
+                blockResult.blockPower,
+                blockResult.blockEffect);
+        emitUIEvent(buffer);
+
 
         // 根据拦网结果处理
         switch (blockResult.result) {
             case BLOCK_BACK: {
                 // 拦回，防守方需要防守拦回球
-                printf("球被拦回！%s队需要防守拦回球\n", (currentAttackingTeam == 0) ? "A" : "B");
+                char buffer[256];
+                sprintf(buffer, "球被拦回！%s队需要防守拦回球", (currentAttackingTeam == 0) ? "A" : "B");
+                emitUIEvent(buffer);
 
                 // 交换攻防角色：原进攻方现在防守拦回球
                 std::swap(currentAttackingTeam, currentDefendingTeam);
@@ -396,15 +444,21 @@ int processRallyFromReceive(GameState& game, int attackingTeam, int defendingTea
                 Defender defender(game, currentDefendingTeam, currentAttackingTeam);
                 DefenseResult defenseResult = defender.simulateDefenseAgainstBlockBack(blockResult);
 
-                printf("%s队%s防守拦回球：%s（质量值：%d）\n",
-                       (currentDefendingTeam == 0) ? "A" : "B",
-                       defenseResult.defender.name.c_str(),
-                       defenseResult.description.c_str(),
-                       defenseResult.qualityValue);
+
+                sprintf(buffer, "%s队%s防守拦回球：%s（质量值：%d）",
+                        (currentDefendingTeam == 0) ? "A" : "B",
+                        defenseResult.defender.name.c_str(),
+                        defenseResult.description.c_str(),
+                        defenseResult.qualityValue);
+                emitUIEvent(buffer);
+
 
                 if (defenseResult.quality == DEFENSE_FAULT) {
                     // 防守失误，对方得分
-                    printf("防守拦回球失误！%s队得分\n", (currentAttackingTeam == 0) ? "A" : "B");
+                    char buffer[256];
+                    sprintf(buffer, "防守拦回球失误！%s队得分", (currentAttackingTeam == 0) ? "A" : "B");
+                    emitUIEvent(buffer);
+
                     return currentAttackingTeam;
                 }
 
@@ -421,8 +475,10 @@ int processRallyFromReceive(GameState& game, int attackingTeam, int defendingTea
 
             case BLOCK_BREAK: {
                 // 拦网破坏，扣球强度增加
-                printf("拦网破坏！扣球强度从%d增加到%d\n",
-                       spikeResult.spikePower, blockResult.increasedSpikePower);
+                char buffer[256];
+                sprintf(buffer, "拦网破坏！扣球强度从%d增加到%d",
+                        spikeResult.spikePower, blockResult.increasedSpikePower);
+                emitUIEvent(buffer);
 
                 // 更新扣球强度
                 spikeResult.spikePower = blockResult.increasedSpikePower;
@@ -433,8 +489,10 @@ int processRallyFromReceive(GameState& game, int attackingTeam, int defendingTea
 
             case LIMIT_PATH: {
                 // 限制球路，扣球强度略微削减
-                printf("限制球路！扣球强度从%d削减到%d\n",
-                       spikeResult.spikePower, blockResult.reducedSpikePower);
+                char buffer[256];
+                sprintf(buffer, "限制球路！扣球强度从%d削减到%d",
+                        spikeResult.spikePower, blockResult.reducedSpikePower);
+                emitUIEvent(buffer);
 
                 // 更新扣球强度
                 spikeResult.spikePower = blockResult.reducedSpikePower;
@@ -445,8 +503,10 @@ int processRallyFromReceive(GameState& game, int attackingTeam, int defendingTea
 
             case BLOCK_TOUCH: {
                 // 撑起，扣球强度被削弱
-                printf("扣球被撑起，强度从%d削弱到%d\n",
-                       spikeResult.spikePower, blockResult.reducedSpikePower);
+                char buffer[256];
+                sprintf(buffer, "扣球被撑起，强度从%d削弱到%d",
+                        spikeResult.spikePower, blockResult.reducedSpikePower);
+                emitUIEvent(buffer);
 
                 // 更新扣球强度
                 spikeResult.spikePower = blockResult.reducedSpikePower;
@@ -457,7 +517,10 @@ int processRallyFromReceive(GameState& game, int attackingTeam, int defendingTea
 
             case NO_TOUCH: {
                 // 无接触，扣球强度不变
-                printf("无接触，扣球强度保持%d\n", spikeResult.spikePower);
+                char buffer[256];
+                sprintf(buffer, "无接触，扣球强度保持%d", spikeResult.spikePower);
+                emitUIEvent(buffer);
+
                 break;
             }
         }
@@ -470,15 +533,20 @@ int processRallyFromReceive(GameState& game, int attackingTeam, int defendingTea
         Defender defender(game, currentDefendingTeam, currentAttackingTeam);
         DefenseResult defenseResult = defender.simulateDefenseAgainstSpike(spikeResult, blockResult);
 
-        printf("%s队%s防守：%s（质量值：%d）\n",
-               (currentDefendingTeam == 0) ? "A" : "B",
-               defenseResult.defender.name.c_str(),
-               defenseResult.description.c_str(),
-               defenseResult.qualityValue);
+
+        sprintf(buffer, "%s队%s防守：%s（质量值：%d）",
+                (currentDefendingTeam == 0) ? "A" : "B",
+                defenseResult.defender.name.c_str(),
+                defenseResult.description.c_str(),
+                defenseResult.qualityValue);
+        emitUIEvent(buffer);
+
 
         if (defenseResult.quality == DEFENSE_FAULT) {
             // 防守失误，对方得分
-            printf("防守失误！%s队得分\n", (currentAttackingTeam == 0) ? "A" : "B");
+            char buffer[256];
+            sprintf(buffer, "防守失误！%s队得分", (currentAttackingTeam == 0) ? "A" : "B");
+            emitUIEvent(buffer);
 
             if(currentAttackingTeam == 0) {
                 game.scoredA[attackerID]++;
@@ -505,7 +573,10 @@ int processRallyFromReceive(GameState& game, int attackingTeam, int defendingTea
     }
 
     // 如果达到最大循环次数，随机决定得分方（防止无限循环）
-    printf("攻防回合过多（超过%d回合），随机决定得分方\n", MAX_RALLY_COUNT);
+    char buffer[256];
+    sprintf(buffer, "攻防回合过多（超过%d回合），随机决定得分方", MAX_RALLY_COUNT);
+    emitUIEvent(buffer);
+
     return (rand() % 2 == 0) ? currentAttackingTeam : currentDefendingTeam;
 }
 
@@ -518,13 +589,20 @@ int playSet(int target, GameState& game) {
     game.scoreA = 0;
     game.scoreB = 0;
 
-    printf("\n===== 第%d局开始（目标%d分，领先2分获胜）=====\n", game.setNum, target);
-    printf("初始发球方：%s队\n", game.serveSide == 0 ? "A" : "B");
+    char buffer1[256];
+    sprintf(buffer1, "第%d局开始（目标%d分，领先2分获胜）", game.setNum, target);
+    emitUIEvent(buffer1);
+    char buffer2[256];
+    sprintf(buffer2, "初始发球方：%s队", game.serveSide == 0 ? "A" : "B");
+    emitUIEvent(buffer2);
 
     while(true) {
         // 检查获胜条件
         if((game.scoreA >= target || game.scoreB >= target) && abs(game.scoreA - game.scoreB) >= 2) {
-            printf("===== 第%d局结束！A队%d分，B队%d分 =====\n", game.setNum, game.scoreA, game.scoreB);
+            char buffer[256];
+            sprintf(buffer, "第%d局结束！A队%d分，B队%d分", game.setNum, game.scoreA, game.scoreB);
+            emitUIEvent(buffer);
+
             return game.scoreA > game.scoreB ? 0 : 1;
         }
 
@@ -538,7 +616,10 @@ int playSet(int target, GameState& game) {
             server = teamB[game.rotateB[0]];  // B队1号位发球
         }
 
-        printf("\n【当前比分：A:%d - B:%d】\n", game.scoreA, game.scoreB);
+        char buffer[256];
+        sprintf(buffer, "【当前比分：A:%d - B:%d】", game.scoreA, game.scoreB);
+        emitUIEvent(buffer);
+
         printf("【当前阵容】\n");
         std::cout << std::setw(6) << teamA[game.rotateA[4]].name << " " << std::setw(6) << teamA[game.rotateA[3]].name << " | ";
         std::cout << std::setw(6) << teamB[game.rotateB[1]].name << " " << std::setw(6) << teamB[game.rotateB[0]].name << "\n";
@@ -554,7 +635,8 @@ int playSet(int target, GameState& game) {
 
         if(scorer == 0) {  // A队得分
             game.scoreA++;
-            printf("A队得分！\n");
+            emitUIEvent("A队得分！");
+
 
             if(game.serveSide == 0) {
                 // A队是发球方，得分后不轮转，发球人不变
@@ -570,7 +652,8 @@ int playSet(int target, GameState& game) {
             }
         } else {  // B队得分
             game.scoreB++;
-            printf("B队得分！\n");
+            emitUIEvent("B队得分！");
+
 
             if(game.serveSide == 1) {
                 // B队是发球方，得分后不轮转，发球人不变
@@ -596,7 +679,10 @@ void newGame() {
     GameState game;
     // 随机决定初始发球方（0=A，1=B）
     game.serveSide = rand() % 2;
-    printf("\n===== 比赛开始！第一局发球方：%s =====\n", game.serveSide == 0 ? "A队" : "B队");
+    char buffer[256];
+    sprintf(buffer, "比赛开始！第一局发球方：%s", game.serveSide == 0 ? "A队" : "B队");
+    emitUIEvent(buffer);
+
     inputPlayer();
 
     //初始化轮转位置
@@ -604,7 +690,7 @@ void newGame() {
         game.rotateA[i] = i;
         game.rotateB[i] = i;
     }
-    
+
     // 初始化自由人替换
     if(teamA[game.rotateA[5]].position == "MB") {
         game.liberoReplaceA = game.rotateA[5];
@@ -649,8 +735,11 @@ void newGame() {
     int set1Winner = playSet(25, game);
     set1Winner == 0 ? winnerSetA++ : winnerSetB++;
 
-    printf("\n===== 第二局发球方：%s =====\n", game.serveSide == 0 ? "A队" : "B队");
-    printf("\n===== 请重新输入双方轮次 =====\n");
+
+    sprintf(buffer, "第二局发球方：%s", game.serveSide == 0 ? "A队" : "B队");
+    emitUIEvent(buffer);
+    emitUIEvent("请重新输入双方轮次");
+
     inputPlayer();
     //初始化轮转位置
     for(int i = 0; i < 6; i++) {
@@ -669,8 +758,11 @@ void newGame() {
     game.setNum = 3;
     game.serveSide = rand() % 2;
 
-    printf("\n===== 第三局发球方：%s =====\n", game.serveSide == 0 ? "A队" : "B队");
-    printf("\n===== 请重新输入双方轮次 =====\n");
+
+    sprintf(buffer, "第三局发球方：%s", game.serveSide == 0 ? "A队" : "B队");
+    emitUIEvent(buffer);
+    emitUIEvent("请重新输入双方轮次");
+
     inputPlayer();
     //初始化轮转位置
     for(int i = 0; i < 6; i++) {
@@ -682,17 +774,36 @@ void newGame() {
     set3Winner == 0 ? winnerSetA++ : winnerSetB++;
 
     // 全场结果
-    printf("\n===== 全场比赛结束！=====\n");
-    printf("A队胜%d局，B队胜%d局\n", winnerSetA, winnerSetB);
-    printf("最终胜者：%s队\n", winnerSetA > winnerSetB ? "A" : "B");
+    emitUIEvent("全场比赛结束！");
+    char buffer1[256];
+    sprintf(buffer1, "A队胜%d局，B队胜%d局", winnerSetA, winnerSetB);
+    emitUIEvent(buffer1);
+    char buffer2[256];
+    sprintf(buffer2, "最终胜者：%s队", winnerSetA > winnerSetB ? "A" : "B");
+    emitUIEvent(buffer2);
 
-    printf("\n===== 数据统计 =====\n");
-    printf("A队：\n");
+
+    emitUIEvent("数据统计");
+
+    emitUIEvent("A队：");
     for(int i = 0; i < 7; i++) {
-        std::cout << std::setw(4) << teamA[i].name << "|" << std::setw(2) << teamA[i].position << "|进攻得分：" << game.scoredA[i] << "|失误：" << game.faultA[i]  << "\n";
+        char buffer[256];
+        sprintf(buffer, "%s|%s|进攻得分：%d|失误：%d",
+                teamA[i].name.c_str(),
+                teamA[i].position.c_str(),
+                game.scoredA[i],
+                game.faultA[i]);
+        emitUIEvent(buffer);
     }
-    printf("B队：\n");
+    emitUIEvent("B队：");
     for(int i = 0; i < 7; i++) {
-        std::cout << std::setw(4) << teamB[i].name << "|" << std::setw(2) << teamB[i].position << "|进攻得分：" << game.scoredB[i] << "|失误：" << game.faultB[i]  << "\n";
+        char buffer[256];
+        sprintf(buffer, "%s|%s|进攻得分：%d|失误：%d",
+                teamB[i].name.c_str(),
+                teamB[i].position.c_str(),
+                game.scoredB[i],
+                game.faultB[i]);
+        emitUIEvent(buffer);
     }
+
 }
