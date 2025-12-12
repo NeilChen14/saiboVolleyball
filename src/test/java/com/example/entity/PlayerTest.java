@@ -160,4 +160,52 @@ public class PlayerTest {
             System.out.println(ball);
         }
     }
+
+    @Test
+    public void blockTest1() {
+        Player blocker = players.get(8);
+
+        System.out.println(blocker.getName() + "拦网：");
+        for (int i = 1; i <= 100; i++) {
+            System.out.println("第" + i + "球：");
+            Ball ball = blocker.block(new Ball(80, 80, 5, BallType.SPIKE));
+            System.out.println(ball);
+        }
+    }
+
+    @Test
+    public void blockTest2() {
+        Player blocker = players.get(8);
+
+        System.out.println(blocker.getName() + "拦网：");
+        int count = 100000;
+        int block = 0;
+        int out = 0;
+        int touch = 0;
+        int destroy = 0;
+        int none = 0;
+        for (int i = 1; i <= count; i++) {
+            Ball ball = blocker.block(new Ball(80, 80, 5, BallType.SPIKE));
+            switch (ball.type()) {
+                case BLOCK:
+                    block++;
+                    break;
+                case TOUCH:
+                    if (ball.power() < 80) touch++;
+                    else destroy++;
+                    break;
+                case OUT_BALL:
+                    out++;
+                    break;
+                default:
+                    none++;
+                    break;
+            }
+        }
+        System.out.println("拦截：" + block * 100 / (double)count + "%");
+        System.out.println("撑起：" + touch * 100 / (double)count + "%");
+        System.out.println("破坏：" + destroy * 100 / (double)count + "%");
+        System.out.println("出界：" + out * 100 / (double)count + "%");
+        System.out.println("未碰球：" + none * 100 / (double)count + "%");
+    }
 }

@@ -6,6 +6,7 @@ import com.example.action.BallType;
 import java.util.Random;
 
 import static java.lang.Math.exp;
+import static java.lang.Math.pow;
 
 public class Player {
     private final String name;
@@ -114,6 +115,9 @@ public class Player {
         double distance = deviation(4.5 + (isJump ? 1.5 : 0) - (isFloat ? 1.5 : 0),
                 2.5, power, disruptiveness);
 
+        //体力减少
+        staminaChange(1 - power / 10000);
+
         return new Ball(power, disruptiveness, distance, type);
     }
 
@@ -151,6 +155,9 @@ public class Player {
                 distance < 6 ? BallType.PASS : BallType.BAD_PASS;
         if (distance < 0) distance = -distance;
 
+        //体力减少
+        staminaChange(1 - (ball.power() - power) / 10000);
+
         return new Ball(power, disruptiveness, distance, type);
     }
 
@@ -183,6 +190,9 @@ public class Player {
                 double distance = deviation(1, 0.6, power, disruptiveness);
                 if (distance < 0) return new Ball(0, 0, distance, BallType.UNDER_NET);
 
+                //体力减少
+                staminaChange(1 - power / 10000);
+
                 return new Ball(power, disruptiveness, distance, BallType.ONE_PASS_ATTACK);
             } else { //二传
                 //质量参数
@@ -207,6 +217,9 @@ public class Player {
                 BallType type = distance < 0 ? BallType.OVER_SET :
                         distance < 6 ? BallType.SET : BallType.BAD_SET;
                 if (distance < 0) distance = -distance;
+
+                //体力减少
+                staminaChange(1 - (ball.power() - power) / 10000);
 
                 return new Ball(power, disruptiveness, distance, type);
             }
@@ -236,6 +249,9 @@ public class Player {
                 BallType type = distance < 0 ? BallType.UNDER_NET :
                         distance > 9 ? BallType.OUT_BALL : BallType.SPIKE;
 
+                //体力减少
+                staminaChange(1 - power / 10000);
+
                 return new Ball(power, disruptiveness, distance, type);
             } else { //扣杀
                 //威力
@@ -254,6 +270,9 @@ public class Player {
                 BallType type = distance < 0 ? BallType.UNDER_NET :
                         distance > 9 ? BallType.OUT_BALL : BallType.SPIKE;
 
+                //体力减少
+                staminaChange(1 - power / 10000);
+
                 return new Ball(power, disruptiveness, distance, type);
             }
         } else { //处理球
@@ -264,16 +283,21 @@ public class Player {
             double power = quality * 0.1
                     + getAbility(0.25, 0, 0, 0.15)
                     - ball.power();
+            if (power < 0) power = -power;
 
             //破坏性
             double disruptiveness = quality * 0.15
                     + getAbility(0, 0, 0.25, 0.1)
                     - ball.disruptiveness();
+            if (disruptiveness < 0) disruptiveness = -disruptiveness;
 
             //距离
             double distance = deviation(4.5, 4.5, ball.power(), ball.disruptiveness());
 
             BallType type = (power < 0 || disruptiveness < 0) ? BallType.OUT_BALL : BallType.PASS;
+
+            //体力减少
+            staminaChange(1 - (ball.power() - power) / 10000);
 
             return new Ball(power, disruptiveness, distance, type);
         }
@@ -281,11 +305,46 @@ public class Player {
 
     //拦网
     public Ball block(Ball ball) {
-        //todo
-        return null;
+        //质量参数
+        double quality = getBlock();
+
+        //触球
+        double abilityFactor = (quality * 0.3
+                + getAbility(0.2, 0, 0.3, 0.2))
+                * getHeight() / 100;
+        double challengeFactor = ball.power() * (1 - getFlexibility() / 200) * 0.7 + ball.disruptiveness() * 0.3;
+        boolean isBlock = 1 / (1 + pow(challengeFactor, 2) / pow(abilityFactor, 2))
+                > random.nextDouble();
+
+        if (!isBlock) return ball;
+
+        //拦回
+        double controlFactor = quality * 0.15
+                + getAbility(0.25, 0.3, 0.15, 0.15)
+                - ball.power() * 0.7 - ball.disruptiveness() * 0.3;
+
+        BallType type = controlFactor > 0 ? BallType.BLOCK : BallType.TOUCH;
+
+        //威力
+        double power = ((100 - controlFactor) * ball.power() + (100 + controlFactor)
+                * getAbility(0.5, 0.5, 0, 0)) / 200;
+
+        //破坏性
+        double disruptiveness = ((100 - controlFactor) * ball.disruptiveness() + (100 + controlFactor)
+                * (quality * 0.4 + getAbility(0, 0, 0.3, 0.3)))/ 200;
+
+        //距离
+        double distance = deviation(4, 2, power, disruptiveness);
+
+        if (distance < 0) type = BallType.OUT_BALL;
+
+        //体力减少
+        staminaChange(1 - power / 10000);
+
+        return new Ball(power, disruptiveness, distance, type);
     }
 
-    //体力变化 todo 对所有动作使用
+    //体力变化
     public void staminaChange(double factor) {
         if (factor < 1) { //体力下降
             factor = 1 - (1 - factor) * (1 - this.stamina_resist / 100.0);
