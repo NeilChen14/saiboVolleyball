@@ -343,3 +343,94 @@ $$tip = PAS\times 0.6 + WIS\times0.4$$
 调整了部分细节运算，以保持各部分一致
 修正了一些已知的显示错误
 ~~~
+
+---
+#### 25.12.12 by shishi
+
+## SDL使用指南
+系统要求
+
+- **Windows/Linux/macOS**
+- **CMake 3.14+**
+- **C++17兼容的编译器** (如GCC 8+, Clang 7+, MSVC 2019+)
+- **SDL2 开发库** (SDL2 和 SDL2_ttf)
+
+## 快速开始
+
+### Windows 系统
+
+#### 方法1: 使用vcpkg (推荐)
+
+1. 安装 [vcpkg](https://vcpkg.io/):
+   ```powershell
+   git clone https://github.com/microsoft/vcpkg
+   .\vcpkg\bootstrap-vcpkg.bat
+   ```
+
+2. 安装依赖:
+   ```powershell
+   .\vcpkg\vcpkg install sdl2:x64-windows sdl2-ttf:x64-windows
+   ```
+
+3. 构建项目:
+   ```powershell
+   mkdir build
+   cd build
+   cmake .. -DCMAKE_TOOLCHAIN_FILE=[path-to-vcpkg]\scripts\buildsystems\vcpkg.cmake
+   cmake --build . --config Release
+   ```
+
+#### 方法2: 手动安装SDL2
+
+1. 从 [SDL2 官网](https://www.libsdl.org/download-2.0.php) 下载SDL2和SDL2_ttf开发库
+2. 解压到 `C:\SDL2` 或任意目录
+3. 构建项目:
+   ```powershell
+   mkdir build
+   cd build
+   cmake .. -DSDL2_PREFIX=C:\\SDL2
+   cmake --build . --config Release
+   ```
+
+### Linux 系统
+
+```bash
+# 安装依赖
+sudo apt-get update
+sudo apt-get install -y build-essential cmake libsdl2-dev libsdl2-ttf-dev
+
+# 构建项目
+mkdir build && cd build
+cmake ..
+make -j$(nproc)
+```
+
+### macOS 系统
+
+```bash
+# 使用Homebrew安装依赖
+brew install cmake sdl2 sdl2_ttf
+
+# 构建项目
+mkdir build && cd build
+cmake ..
+make -j$(sysctl -n hw.logicalcpu)
+```
+
+## 运行游戏
+
+构建完成后，可执行文件将位于 `build/bin/` 目录下：
+
+```bash
+# Windows
+.\build\bin\Release\VolleyballSimulation.exe
+
+# Linux/macOS
+./build/VolleyballSimulation
+```
+
+---
+
+
+
+
