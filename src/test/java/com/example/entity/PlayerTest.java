@@ -1,7 +1,6 @@
 package com.example.entity;
 
-import com.example.action.Ball;
-import com.example.action.BallType;
+import com.example.group.Role;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;

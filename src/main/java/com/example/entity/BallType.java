@@ -1,4 +1,4 @@
-package com.example.action;
+package com.example.entity;
 
 public enum BallType {
     SERVE, JUMP_SERVE, FLOAT_SERVE, JUMP_FLOAT_SERVE,

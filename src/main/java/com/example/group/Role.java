@@ -1,4 +1,4 @@
-package com.example.entity;
+package com.example.group;
 
 public enum Role {
     OH,     //主攻

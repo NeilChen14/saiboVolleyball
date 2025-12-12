@@ -1,4 +1,4 @@
-package com.example.action;
+package com.example.entity;
 
 /**
  * @param power 威力，描述一个球的速度和力量

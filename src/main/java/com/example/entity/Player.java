@@ -1,7 +1,6 @@
 package com.example.entity;
 
-import com.example.action.Ball;
-import com.example.action.BallType;
+import com.example.group.Role;
 
 import java.util.Random;
 
@@ -19,12 +18,12 @@ public class Player {
     private final int block;  //拦
 
     //基本能力(0-100)
-    private final int strength;           //力量
-    private final int height;             //高度
-    private final int flexibility;        //灵活
+    private final int strength;          //力量
+    private final int height;            //高度
+    private final int flexibility;       //灵活
     private final int reliable;          //稳定
-    private final int stamina_resist;    //体力：抵抗体力下降的参数
-    private final int mentality_resist;  //心态：抵抗心态下降的参数
+    private final int stamina_resist;    //体力抵抗
+    private final int mentality_resist;  //心态抵抗
 
     //当前状态：影响力量、高度、灵活、稳定
     private double stamina;    //体力

@@ -1,4 +1,6 @@
-package com.example.entity;
+package com.example.group;
+
+import com.example.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Arrays;
